@@ -1,20 +1,61 @@
-// CustomString.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//#include <iostream>
+//#include <string>
 //
+//int main()
+//{
+//	std::string a = std::string('c', 5);
+//
+//	char c{};
+//
+//	std::cout << "Hello World!\n";
+//}
 
-#include <iostream>
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
+#include "CustomString/CustomString.h"
+#include <vld.h>
+#include <limits>
 
-int main()
+using String = CustomString<char>;
+
+TEST_CASE("Test Custom String")
 {
-    std::cout << "Hello World!\n";
+	String str{ "Hello World!" };
+
+	SECTION("Test default ctor")
+	{
+		String string{};
+
+		REQUIRE(string.Size() == 0);
+		REQUIRE(string.Capacity() == 0);
+		REQUIRE(string.MaxSize() == std::numeric_limits<size_t>::max());
+		REQUIRE(string.Data() == nullptr);
+	}
+
+	SECTION("Test ctor with char and count")
+	{
+		String string{ 'L', 7 };
+
+		REQUIRE(string.Size() == 8);
+		REQUIRE(string.Capacity() >= 8);
+		REQUIRE(string.MaxSize() == std::numeric_limits<size_t>::max());
+		REQUIRE(string.Data() != nullptr);
+		REQUIRE(string == "LLLLLLL");
+	}
+
+	SECTION("Test ctor with raw string")
+	{
+		REQUIRE(str.Size() == 13);
+		REQUIRE(str.Capacity() >= 13);
+		REQUIRE(str.MaxSize() == std::numeric_limits<size_t>::max());
+		REQUIRE(str.Data() != nullptr);
+	}
+
+	SECTION("Compare against raw string")
+	{
+		REQUIRE(str == "Hello World!");
+		REQUIRE(str != "Hello_World!");
+		REQUIRE(str != "Hello World, This is Rhidian!");
+		REQUIRE(str != "");
+	}
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
