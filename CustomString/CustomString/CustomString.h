@@ -39,7 +39,8 @@ public:
 
 	CustomString& Assign(const T c, const size_t count);
 	CustomString& Assign(const T* pStr);
-	CustomString& Assign(const T* pStr, const size_t count);
+	CustomString& Assign(const T* pStr, size_t count);
+	CustomString& Append(const T c, const size_t count);
 	CustomString& operator+=(const T* pStr);
 	CustomString& operator+=(const CustomString<T>& other);
 
@@ -72,6 +73,12 @@ public:
 
 	NODISCARD T& operator[](const size_t index);
 	NODISCARD const T& operator[](const size_t index) const;
+
+#pragma endregion
+
+#pragma region Utility
+
+	CustomString Substring(const size_t start, const size_t count = std::numeric_limits<size_t>::max());
 
 #pragma endregion
 
@@ -246,16 +253,39 @@ CustomString<T>& CustomString<T>::Assign(const T* pStr)
 }
 
 template<typename T>
-CustomString<T>& CustomString<T>::Assign(const T* pStr, const size_t count)
+CustomString<T>& CustomString<T>::Assign(const T* pStr, size_t count)
 {
+	if (pStr[count - 1] != '\0')
+		++count;
+
 	if (!m_pCurrentEnd || (m_pCurrentEnd + count) >= m_pTail)
 		Reallocate(count);
 
 	std::memcpy(m_pCurrentEnd, pStr, count);
 
 	m_pCurrentEnd = m_pCurrentEnd + count;
+	*(m_pCurrentEnd - 1) = T();
 
 	m_Size += count - 1;
+
+	return *this;
+}
+
+template<typename T>
+CustomString<T>& CustomString<T>::Append(const T c, const size_t count)
+{
+	if (!m_pCurrentEnd || (m_pCurrentEnd + count + 1) >= m_pTail)
+		Reallocate(m_Size + count + 1);
+
+	if (m_pCurrentEnd > m_pHead)
+		--m_pCurrentEnd;
+
+	for (size_t i{}; i < count; ++i)
+		*m_pCurrentEnd++ = c;
+
+	*m_pCurrentEnd++ = T();
+
+	m_Size += count;
 
 	return *this;
 }
@@ -267,6 +297,9 @@ CustomString<T>& CustomString<T>::operator+=(const T* pStr)
 
 	if (!m_pCurrentEnd || (m_pCurrentEnd + size) >= m_pTail)
 		Reallocate(m_Size + size);
+
+	if (m_pCurrentEnd > m_pHead)
+		--m_pCurrentEnd;
 
 	std::memcpy(m_pCurrentEnd, pStr, size);
 
@@ -284,6 +317,9 @@ CustomString<T>& CustomString<T>::operator+=(const CustomString<T>& other)
 
 	if (!m_pCurrentEnd || (m_pCurrentEnd + size + 1) >= m_pTail)
 		Reallocate(m_Size + size + 1);
+
+	if (m_pCurrentEnd > m_pHead)
+		--m_pCurrentEnd;
 
 	std::memcpy(m_pCurrentEnd, other.Data(), size);
 
@@ -434,6 +470,30 @@ const T& CustomString<T>::operator[](const size_t index) const
 
 #pragma endregion
 
+#pragma region Utility
+
+template<typename T>
+CustomString<T> CustomString<T>::Substring(const size_t start, const size_t count)
+{
+	assert(start < m_Size);
+
+	CustomString<T> string{};
+	size_t substrCounter{};
+
+	while ((substrCounter < count) &&
+		(start + substrCounter < m_Size) &&
+		(*(m_pHead + start + substrCounter) != T()))
+	{
+		++substrCounter;
+	}
+
+	string.Assign(m_pHead + start, substrCounter);
+
+	return string;
+}
+
+#pragma endregion
+
 #pragma region Reallocation
 
 template<typename T>
@@ -453,6 +513,9 @@ void CustomString<T>::Reallocate(const size_t min)
 	std::memcpy(m_pHead, pOldHead, oldSize);
 
 	m_pCurrentEnd = m_pHead + oldSize;
+
+	if (m_pCurrentEnd > m_pHead)
+		*m_pCurrentEnd++ = T();
 
 	DeleteData(pOldHead, pOldTail);
 	Release(pOldHead);

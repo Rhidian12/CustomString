@@ -262,4 +262,28 @@ TEST_CASE("Test Custom String")
 		REQUIRE(str == "Hello World! This is Rhidian!");
 		REQUIRE(IsStringNullTerminated(str));
 	}
+
+	SECTION("Appending characters to a string")
+	{
+		String string{ "Hello World!" };
+
+		string.Append('x', 5);
+
+		REQUIRE(string.Size() == 17);
+		REQUIRE(string.Capacity() >= 17);
+		REQUIRE(string.Data() != nullptr);
+		REQUIRE(string == "Hello World!xxxxx");
+		REQUIRE(IsStringNullTerminated(string));
+	}
+
+	SECTION("Testing Substring")
+	{
+		String string{ "Hello World!" };
+
+		REQUIRE(string.Substring(0) == "Hello World!");
+		REQUIRE(string.Substring(0, 5) == "Hello");
+		REQUIRE(string.Substring(6) == "World!");
+		REQUIRE(string.Substring(2, 3) == "llo");
+		REQUIRE(string.Substring(0, 1) == "H");
+	}
 }
