@@ -1,9 +1,9 @@
 #pragma once
 
-#include <type_traits>
-#include <cstring>
-#include <assert.h>
-#include <limits>
+#include <cstring> /* std::memcpy */
+#include <assert.h> /* assert() */
+#include <limits> /* std::numeric_limits */
+#include <utility> /* std::move() */
 
 #ifdef max
 #undef max
@@ -26,6 +26,15 @@ public:
 
 #pragma endregion
 
+#pragma region RuleOf5
+
+	CustomString(const CustomString& other) noexcept;
+	CustomString(CustomString&& other) noexcept;
+	CustomString& operator=(const CustomString& other) noexcept;
+	CustomString& operator=(CustomString&& other) noexcept;
+
+#pragma endregion
+
 #pragma region Adding_Chars
 
 	CustomString& Assign(const T c, const size_t count);
@@ -45,10 +54,24 @@ public:
 
 #pragma region Comparison
 
+	NODISCARD bool operator==(const CustomString& other) const;
 	NODISCARD bool operator==(const T* pStr) const;
 
 #pragma endregion
 
+#pragma region String_Manipulation
+
+	CustomString& ToUpper();
+	CustomString& ToLower();
+
+#pragma endregion
+
+#pragma region Element_Access
+
+	T& operator[](const size_t index);
+	const T& operator[](const size_t index) const;
+
+#pragma endregion
 
 private:
 #pragma region Reallocation
@@ -57,7 +80,6 @@ private:
 	constexpr size_t CalculateNewCapacity(const size_t min) const;
 	constexpr void Release(T*& pData);
 	constexpr void DeleteData(T* head, T* const tail) const;
-
 
 #pragma endregion
 
@@ -70,6 +92,7 @@ private:
 	T* m_pHead;
 	T* m_pTail;
 	T* m_pCurrentEnd; // Points past the end
+	size_t m_Size;
 };
 
 #pragma region Ctors_Dtors
@@ -79,6 +102,7 @@ CustomString<T>::CustomString(const T c, const size_t count)
 	: m_pHead{}
 	, m_pTail{}
 	, m_pCurrentEnd{}
+	, m_Size{}
 {
 	Assign(c, count);
 }
@@ -88,6 +112,7 @@ CustomString<T>::CustomString(const T* pStr)
 	: m_pHead{}
 	, m_pTail{}
 	, m_pCurrentEnd{}
+	, m_Size{}
 {
 	Assign(pStr);
 }
@@ -97,6 +122,94 @@ CustomString<T>::~CustomString()
 {
 	DeleteData(m_pHead, m_pCurrentEnd);
 	Release(m_pHead);
+
+	m_Size = 0;
+}
+
+#pragma endregion
+
+#pragma region RuleOf5
+
+template<typename T>
+CustomString<T>::CustomString(const CustomString& other) noexcept
+	: m_pHead{}
+	, m_pTail{}
+	, m_pCurrentEnd{}
+	, m_Size{ other.m_Size }
+{
+	if (const uint64_t cap{ other.Capacity() }; cap > 0u)
+	{
+		m_pHead = new T[cap]{};
+		m_pTail = m_pHead + cap;
+
+		const uint64_t size{ other.Size() };
+		std::memcpy(m_pHead, other.m_pHead, size);
+
+		m_pCurrentEnd = m_pHead + size;
+	}
+}
+
+template<typename T>
+CustomString<T>::CustomString(CustomString&& other) noexcept
+	: m_pHead{ std::move(other.m_pHead) }
+	, m_pTail{ std::move(other.m_pTail) }
+	, m_pCurrentEnd{ std::move(other.m_pCurrentEnd) }
+	, m_Size{ std::move(other.m_Size) }
+{
+	other.m_pHead = nullptr;
+	other.m_pTail = nullptr;
+	other.m_pCurrentEnd = nullptr;
+	other.m_Size = 0;
+}
+
+template<typename T>
+CustomString<T>& CustomString<T>::operator=(const CustomString& other) noexcept
+{
+	if (m_pHead)
+	{
+		DeleteData(m_pHead, m_pCurrentEnd);
+		Release(m_pHead);
+	}
+
+	m_pHead = nullptr;
+	m_pTail = nullptr;
+	m_pCurrentEnd = nullptr;
+	m_Size = other.m_Size;
+
+	if (const uint64_t cap{ other.Capacity() }; cap > 0u)
+	{
+		m_pHead = new T[cap]{};
+		m_pTail = m_pHead + cap;
+
+		const uint64_t size{ other.Size() };
+		std::memcpy(m_pHead, other.m_pHead, size);
+
+		m_pCurrentEnd = m_pHead + size;
+	}
+
+	return *this;
+}
+
+template<typename T>
+CustomString<T>& CustomString<T>::operator=(CustomString&& other) noexcept
+{
+	if (m_pHead)
+	{
+		DeleteData(m_pHead, m_pCurrentEnd);
+		Release(m_pHead);
+	}
+
+	m_pHead = std::move(other.m_pHead);
+	m_pTail = std::move(other.m_pTail);
+	m_pCurrentEnd = std::move(other.m_pCurrentEnd);
+	m_Size = std::move(other.m_Size);
+
+	other.m_pHead = nullptr;
+	other.m_pTail = nullptr;
+	other.m_pCurrentEnd = nullptr;
+	other.m_Size = 0;
+
+	return *this;
 }
 
 #pragma endregion
@@ -109,11 +222,15 @@ CustomString<T>& CustomString<T>::Assign(const T c, const size_t count)
 	if (!m_pCurrentEnd || (m_pCurrentEnd + count) >= m_pTail)
 		Reallocate(count + 1);
 
-	// - 1 because final char needs to be null terminator
+	if (m_pCurrentEnd > m_pHead)
+		--m_pCurrentEnd; /* If there is a null-terminator make sure we overwrite it */
+
 	for (size_t i{}; i < count; ++i)
 		*m_pCurrentEnd++ = c;
 
 	*m_pCurrentEnd++ = T();
+
+	m_Size += count;
 
 	return *this;
 }
@@ -121,6 +238,8 @@ CustomString<T>& CustomString<T>::Assign(const T c, const size_t count)
 template<typename T>
 CustomString<T>& CustomString<T>::Assign(const T* pStr)
 {
+	assert(pStr != nullptr);
+
 	return Assign(pStr, CountRawString(pStr));
 }
 
@@ -134,6 +253,8 @@ CustomString<T>& CustomString<T>::Assign(const T* pStr, const size_t count)
 
 	m_pCurrentEnd = m_pCurrentEnd + count;
 
+	m_Size += count - 1;
+
 	return *this;
 }
 
@@ -144,7 +265,7 @@ CustomString<T>& CustomString<T>::Assign(const T* pStr, const size_t count)
 template<typename T>
 size_t CustomString<T>::Size() const
 {
-	return m_pCurrentEnd - m_pHead;
+	return m_Size;
 }
 
 template<typename T>
@@ -170,9 +291,36 @@ const T* CustomString<T>::Data() const
 #pragma region Comparison
 
 template<typename T>
+bool CustomString<T>::operator==(const CustomString& other) const
+{
+	if (Size() != other.Size())
+		return false;
+
+	const T* pThisStr{ m_pHead };
+	const T* pOtherStr{ other.Data() };
+
+	if (!pThisStr && !pOtherStr)
+		return true;
+
+	while ((*pThisStr != T()) && (*pOtherStr != T()))
+	{
+		if (*pThisStr != *pOtherStr)
+			return false;
+
+		++pThisStr;
+		++pOtherStr;
+	}
+
+	if (*pThisStr != *pOtherStr)
+		return false;
+
+	return true;
+}
+
+template<typename T>
 bool CustomString<T>::operator==(const T* pStr) const
 {
-	if (Size() != CountRawString(pStr))
+	if (Size() + 1 != CountRawString(pStr))
 		return false;
 
 	const T* pThisStr{ m_pHead };
@@ -189,6 +337,62 @@ bool CustomString<T>::operator==(const T* pStr) const
 		return false;
 
 	return true;
+}
+
+#pragma endregion
+
+#pragma region String_Manipulation
+
+template<typename T>
+CustomString<T>& CustomString<T>::ToUpper()
+{
+	T* pStr{ m_pHead };
+
+	while (pStr != nullptr && *pStr != T())
+	{
+		if (*pStr >= 'a' && *pStr <= 'z')
+			*pStr = *pStr - ('a' - 'A');
+
+		++pStr;
+	}
+
+	return *this;
+}
+
+template<typename T>
+CustomString<T>& CustomString<T>::ToLower()
+{
+	T* pStr{ m_pHead };
+
+	while (pStr != nullptr && *pStr != T())
+	{
+		if (*pStr >= 'A' && *pStr <= 'Z')
+			*pStr = *pStr + ('a' - 'A');
+
+		++pStr;
+	}
+
+	return *this;
+}
+
+#pragma endregion
+
+#pragma region Element_Access
+
+template<typename T>
+T& CustomString<T>::operator[](const size_t index)
+{
+	assert(index < Size());
+
+	return *(m_pHead + index);
+}
+
+template<typename T>
+const T& CustomString<T>::operator[](const size_t index) const
+{
+	assert(index < Size());
+
+	return *(m_pHead + index);
 }
 
 #pragma endregion
