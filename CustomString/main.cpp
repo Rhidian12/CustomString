@@ -77,6 +77,32 @@ TEST_CASE("Test Custom String")
 		REQUIRE(IsStringNullTerminated(string));
 	}
 
+	SECTION("Test Copy operator")
+	{
+		String str{ "Hello World!" };
+		String string = str;
+		String string2{ "This is a string!" };
+		string2 = str;
+
+		REQUIRE(string.Size() == str.Size());
+		REQUIRE(string.Capacity() == str.Capacity());
+		REQUIRE(string.MaxSize() == str.MaxSize());
+		REQUIRE(string.Data() != str.Data());
+		REQUIRE(string == str);
+		REQUIRE(string == "Hello World!");
+		REQUIRE(IsStringNullTerminated(str));
+		REQUIRE(IsStringNullTerminated(string));
+
+		REQUIRE(string2.Size() == str.Size());
+		REQUIRE(string2.Capacity() == str.Capacity());
+		REQUIRE(string2.MaxSize() == str.MaxSize());
+		REQUIRE(string2.Data() != str.Data());
+		REQUIRE(string2 == str);
+		REQUIRE(string2 == "Hello World!");
+		REQUIRE(IsStringNullTerminated(str));
+		REQUIRE(IsStringNullTerminated(string2));
+	}
+
 	SECTION("Compare against raw string")
 	{
 		String str{ "Hello World!" };
