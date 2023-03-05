@@ -70,8 +70,8 @@ public:
 
 #pragma region Element_Access
 
-	T& operator[](const size_t index);
-	const T& operator[](const size_t index) const;
+	NODISCARD T& operator[](const size_t index);
+	NODISCARD const T& operator[](const size_t index) const;
 
 #pragma endregion
 
@@ -79,7 +79,7 @@ private:
 #pragma region Reallocation
 
 	void Reallocate(const size_t min);
-	constexpr size_t CalculateNewCapacity(const size_t min) const;
+	NODISCARD constexpr size_t CalculateNewCapacity(const size_t min) const;
 	constexpr void Release(T*& pData);
 	constexpr void DeleteData(T* head, T* const tail) const;
 
@@ -87,7 +87,7 @@ private:
 
 #pragma region Helpers
 
-	size_t CountRawString(const T* const pStr) const;
+	NODISCARD size_t CountRawString(const T* const pStr) const;
 
 #pragma endregion
 
