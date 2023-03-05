@@ -103,6 +103,54 @@ TEST_CASE("Test Custom String")
 		REQUIRE(IsStringNullTerminated(string2));
 	}
 
+	SECTION("Test Move Ctor")
+	{
+		String str{ "Hello World!" };
+		String string{ std::move(str) };
+
+		REQUIRE(string.Size() == 12);
+		REQUIRE(string.Capacity() >= 12);
+		REQUIRE(string.MaxSize() == std::numeric_limits<size_t>::max());
+		REQUIRE(string.Data() != str.Data());
+		REQUIRE(string == "Hello World!");
+		REQUIRE(IsStringNullTerminated(string));
+
+		REQUIRE(str.Size() == 0);
+		REQUIRE(str.Capacity() == 0);
+		REQUIRE(str.Data() == nullptr);
+	}
+
+	SECTION("Test Move Operator")
+	{
+		String str{ "Hello World!" };
+		String string = std::move(str);
+
+		REQUIRE(string.Size() == 12);
+		REQUIRE(string.Capacity() >= 12);
+		REQUIRE(string.MaxSize() == std::numeric_limits<size_t>::max());
+		REQUIRE(string.Data() != str.Data());
+		REQUIRE(string == "Hello World!");
+		REQUIRE(IsStringNullTerminated(string));
+
+		REQUIRE(str.Size() == 0);
+		REQUIRE(str.Capacity() == 0);
+		REQUIRE(str.Data() == nullptr);
+
+		String string2{ "Some other string!" };
+		string2 = std::move(string);
+
+		REQUIRE(string2.Size() == 12);
+		REQUIRE(string2.Capacity() >= 12);
+		REQUIRE(string2.MaxSize() == std::numeric_limits<size_t>::max());
+		REQUIRE(string2.Data() != str.Data());
+		REQUIRE(string2 == "Hello World!");
+		REQUIRE(IsStringNullTerminated(string2));
+
+		REQUIRE(string.Size() == 0);
+		REQUIRE(string.Capacity() == 0);
+		REQUIRE(string.Data() == nullptr);
+	}
+
 	SECTION("Compare against raw string")
 	{
 		String str{ "Hello World!" };
@@ -168,5 +216,50 @@ TEST_CASE("Test Custom String")
 		REQUIRE(IsStringNullTerminated(str));
 		REQUIRE(IsStringNullTerminated(string));
 		REQUIRE(IsStringNullTerminated(string2));
+	}
+
+	SECTION("Adding a raw string to an existing string")
+	{
+		String str{ "Hello World!" };
+
+		REQUIRE(str.Size() == 12);
+		REQUIRE(str.Capacity() >= 12);
+		REQUIRE(str.MaxSize() == std::numeric_limits<size_t>::max());
+		REQUIRE(str.Data() != nullptr);
+		REQUIRE(IsStringNullTerminated(str));
+
+		str += " This is Rhidian!";
+
+		REQUIRE(str.Size() == 29);
+		REQUIRE(str.Capacity() >= 29);
+		REQUIRE(str.MaxSize() == std::numeric_limits<size_t>::max());
+		REQUIRE(str.Data() != nullptr);
+		REQUIRE(str[12] != '\0');
+		REQUIRE(str[12] == ' ');
+		REQUIRE(str == "Hello World! This is Rhidian!");
+		REQUIRE(IsStringNullTerminated(str));
+	}
+
+	SECTION("Adding another string to an existing string")
+	{
+		String str{ "Hello World!" };
+
+		REQUIRE(str.Size() == 12);
+		REQUIRE(str.Capacity() >= 12);
+		REQUIRE(str.MaxSize() == std::numeric_limits<size_t>::max());
+		REQUIRE(str.Data() != nullptr);
+		REQUIRE(IsStringNullTerminated(str));
+
+		String string{ " This is Rhidian!" };
+		str += string;
+
+		REQUIRE(str.Size() == 29);
+		REQUIRE(str.Capacity() >= 29);
+		REQUIRE(str.MaxSize() == std::numeric_limits<size_t>::max());
+		REQUIRE(str.Data() != nullptr);
+		REQUIRE(str[12] != '\0');
+		REQUIRE(str[12] == ' ');
+		REQUIRE(str == "Hello World! This is Rhidian!");
+		REQUIRE(IsStringNullTerminated(str));
 	}
 }

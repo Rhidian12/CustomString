@@ -40,6 +40,8 @@ public:
 	CustomString& Assign(const T c, const size_t count);
 	CustomString& Assign(const T* pStr);
 	CustomString& Assign(const T* pStr, const size_t count);
+	CustomString& operator+=(const T* pStr);
+	CustomString& operator+=(const CustomString<T>& other);
 
 #pragma endregion
 
@@ -254,6 +256,41 @@ CustomString<T>& CustomString<T>::Assign(const T* pStr, const size_t count)
 	m_pCurrentEnd = m_pCurrentEnd + count;
 
 	m_Size += count - 1;
+
+	return *this;
+}
+
+template<typename T>
+CustomString<T>& CustomString<T>::operator+=(const T* pStr)
+{
+	const size_t size{ CountRawString(pStr) };
+
+	if (!m_pCurrentEnd || (m_pCurrentEnd + size) >= m_pTail)
+		Reallocate(m_Size + size);
+
+	std::memcpy(m_pCurrentEnd, pStr, size);
+
+	m_pCurrentEnd += size;
+
+	m_Size += size - 1;
+
+	return *this;
+}
+
+template<typename T>
+CustomString<T>& CustomString<T>::operator+=(const CustomString<T>& other)
+{
+	const size_t size{ other.Size() };
+
+	if (!m_pCurrentEnd || (m_pCurrentEnd + size + 1) >= m_pTail)
+		Reallocate(m_Size + size + 1);
+
+	std::memcpy(m_pCurrentEnd, other.Data(), size);
+
+	m_pCurrentEnd += size;
+	*m_pCurrentEnd++ = T();
+
+	m_Size += size;
 
 	return *this;
 }
