@@ -78,7 +78,9 @@ public:
 
 #pragma region Utility
 
-	CustomString Substring(const size_t start, const size_t count = std::numeric_limits<size_t>::max());
+	NODISCARD CustomString Substring(const size_t start, const size_t count = std::numeric_limits<size_t>::max()) const;
+	NODISCARD bool StartsWith(const CustomString<T>& str) const;
+	NODISCARD bool StartsWith(const T* pStr) const;
 
 #pragma endregion
 
@@ -473,7 +475,7 @@ const T& CustomString<T>::operator[](const size_t index) const
 #pragma region Utility
 
 template<typename T>
-CustomString<T> CustomString<T>::Substring(const size_t start, const size_t count)
+CustomString<T> CustomString<T>::Substring(const size_t start, const size_t count) const
 {
 	assert(start < m_Size);
 
@@ -490,6 +492,43 @@ CustomString<T> CustomString<T>::Substring(const size_t start, const size_t coun
 	string.Assign(m_pHead + start, substrCounter);
 
 	return string;
+}
+
+template<typename T>
+bool CustomString<T>::StartsWith(const CustomString<T>& str) const
+{
+	if (!m_pHead)
+		return false;
+
+	for (size_t i{}; i < str.Size(); ++i)
+	{
+		if (*(m_pHead + i) == T() || str[i] == T())
+			return false;
+
+		if (*(m_pHead + i) != str[i])
+			return false;
+	}
+
+	return true;
+}
+
+template<typename T>
+bool CustomString<T>::StartsWith(const T* pStr) const
+{
+	if (!m_pHead)
+		return false;
+
+	const size_t size{ CountRawString(pStr) - 1 };
+	for (size_t i{}; i < size; ++i)
+	{
+		if (*(m_pHead + i) == T() || *(pStr + i) == T())
+			return false;
+
+		if (*(m_pHead + i) != *(pStr + i))
+			return false;
+	}
+
+	return true;
 }
 
 #pragma endregion

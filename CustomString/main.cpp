@@ -286,4 +286,17 @@ TEST_CASE("Test Custom String")
 		REQUIRE(string.Substring(2, 3) == "llo");
 		REQUIRE(string.Substring(0, 1) == "H");
 	}
+
+	SECTION("Testing StartsWith")
+	{
+		String string{ "Hello World!" };
+		String string2{ "World" };
+
+		REQUIRE(string.StartsWith("Hello"));
+		REQUIRE(!string.StartsWith(string2));
+		REQUIRE(string.StartsWith("Hello World!"));
+		REQUIRE(!string.StartsWith("ello World!"));
+		REQUIRE(!string.StartsWith("Hello Word"));
+		REQUIRE(string.StartsWith("Hello World"));
+	}
 }
