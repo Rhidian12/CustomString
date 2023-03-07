@@ -15,6 +15,7 @@ template<typename T>
 class CustomString final
 {
 public:
+	constexpr static size_t NoPos{ std::numeric_limits<size_t>::max() };
 
 #pragma region Ctors_Dtors
 
@@ -83,6 +84,9 @@ public:
 	NODISCARD bool StartsWith(const T* pStr) const;
 	NODISCARD bool EndsWith(const CustomString<T>& str) const;
 	NODISCARD bool EndsWith(const T* pStr) const;
+	NODISCARD size_t IndexOf(const T c) const;
+	NODISCARD size_t IndexOf(const CustomString<T>& str) const;
+	NODISCARD size_t IndexOf(const T* pStr) const;
 
 #pragma endregion
 
@@ -571,6 +575,70 @@ bool CustomString<T>::EndsWith(const T* pStr) const
 	}
 
 	return true;
+}
+
+template<typename T>
+size_t CustomString<T>::IndexOf(const T c) const
+{
+	for (size_t i{}; i < m_Size; ++i)
+	{
+		if (*(m_pHead + i) == c)
+			return i;
+	}
+
+	return NoPos;
+}
+
+template<typename T>
+size_t CustomString<T>::IndexOf(const CustomString<T>& str) const
+{
+	const size_t size{ str.Size() };
+	if (size > m_Size)
+		return NoPos;
+
+	for (size_t i{}; i < m_Size; ++i)
+	{
+		bool containsString{ true };
+		for (size_t j{}; j < size; ++j)
+		{
+			if (m_pHead[i + j] != str[j])
+			{
+				containsString = false;
+				break;
+			}
+		}
+
+		if (containsString)
+			return i;
+	}
+
+	return NoPos;
+}
+
+template<typename T>
+size_t CustomString<T>::IndexOf(const T* pStr) const
+{
+	const size_t size{ CountRawString(pStr) - 1 };
+	if (size > m_Size)
+		return NoPos;
+
+	for (size_t i{}; i < m_Size; ++i)
+	{
+		bool containsString{ true };
+		for (size_t j{}; j < size; ++j)
+		{
+			if (m_pHead[i + j] != pStr[j])
+			{
+				containsString = false;
+				break;
+			}
+		}
+
+		if (containsString)
+			return i;
+	}
+
+	return NoPos;
 }
 
 #pragma endregion

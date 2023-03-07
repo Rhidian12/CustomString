@@ -316,4 +316,32 @@ TEST_CASE("Test Custom String")
 		REQUIRE(!string.EndsWith("Hello W!"));
 		REQUIRE(string.EndsWith("!"));
 	}
+
+	SECTION("Testing IndexOf()")
+	{
+		String string{ "Hello World!" };
+		String string2{ "Hello" };
+		String string3{ " World!" };
+		String string4{ " Not the same string." };
+		String string5{ "Hello World! This is a longer string." };
+
+		REQUIRE(string.IndexOf('H') == 0);
+		REQUIRE(string.IndexOf('e') == 1);
+		REQUIRE(string.IndexOf('l') == 2);
+		REQUIRE(string.IndexOf('o') == 4);
+		REQUIRE(string.IndexOf('!') == 11);
+		REQUIRE(string.IndexOf('x') == String::NoPos);
+
+		REQUIRE(string.IndexOf(string2) == 0);
+		REQUIRE(string.IndexOf(string3) == 5);
+		REQUIRE(string.IndexOf(string4) == String::NoPos);
+		REQUIRE(string.IndexOf(string5) == String::NoPos);
+		REQUIRE(string.IndexOf(string) == 0);
+
+		REQUIRE(string.IndexOf("Hello") == 0);
+		REQUIRE(string.IndexOf(" World!") == 5);
+		REQUIRE(string.IndexOf(" World! xoxo") == String::NoPos);
+		REQUIRE(string.IndexOf("Hello World!") == 0);
+		REQUIRE(string.IndexOf("Hello_World!") == String::NoPos);
+	}
 }
