@@ -344,4 +344,26 @@ TEST_CASE("Test Custom String")
 		REQUIRE(string.IndexOf("Hello World!") == 0);
 		REQUIRE(string.IndexOf("Hello_World!") == String::NoPos);
 	}
+
+	SECTION("Testing Contains()")
+	{
+		String string{ "Hello World!" };
+		String string2{ "Hello" };
+		String string3{ "Hello! Test String!" };
+
+		REQUIRE(string.Contains("Hello"));
+		REQUIRE(string.Contains("Hello World!"));
+		REQUIRE(string.Contains("World!"));
+		REQUIRE(!string.Contains("World! Test string!"));
+
+		REQUIRE(string.Contains('W'));
+		REQUIRE(string.Contains('l'));
+		REQUIRE(string.Contains(' '));
+		REQUIRE(string.Contains('!'));
+		REQUIRE(!string.Contains('x'));
+
+		REQUIRE(string.Contains(string));
+		REQUIRE(string.Contains(string2));
+		REQUIRE(!string.Contains(string3));
+	}
 }

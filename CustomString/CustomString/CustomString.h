@@ -87,6 +87,9 @@ public:
 	NODISCARD size_t IndexOf(const T c) const;
 	NODISCARD size_t IndexOf(const CustomString<T>& str) const;
 	NODISCARD size_t IndexOf(const T* pStr) const;
+	NODISCARD bool Contains(const T c) const;
+	NODISCARD bool Contains(const CustomString<T>& str) const;
+	NODISCARD bool Contains(const T* pStr) const;
 
 #pragma endregion
 
@@ -639,6 +642,30 @@ size_t CustomString<T>::IndexOf(const T* pStr) const
 	}
 
 	return NoPos;
+}
+
+template<typename T>
+bool CustomString<T>::Contains(const T c) const
+{
+	for (size_t i{}; i < m_Size; ++i)
+	{
+		if (m_pHead[i] == c)
+			return true;
+	}
+
+	return false;
+}
+
+template<typename T>
+bool CustomString<T>::Contains(const CustomString<T>& str) const
+{
+	return IndexOf(str) != NoPos;
+}
+
+template<typename T>
+bool CustomString<T>::Contains(const T* pStr) const
+{
+	return IndexOf(pStr) != NoPos;
 }
 
 #pragma endregion
