@@ -1,17 +1,3 @@
-//#include <iostream>
-//#include <string>
-//
-//int main()
-//{
-//	std::string a = "cccc";
-//
-//	std::cout << a.size() << "\n";
-//
-//	char c{};
-//
-//	std::cout << "Hello World!\n";
-//}
-
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "CustomString/CustomString.h"
