@@ -81,6 +81,8 @@ public:
 	NODISCARD CustomString Substring(const size_t start, const size_t count = std::numeric_limits<size_t>::max()) const;
 	NODISCARD bool StartsWith(const CustomString<T>& str) const;
 	NODISCARD bool StartsWith(const T* pStr) const;
+	NODISCARD bool EndsWith(const CustomString<T>& str) const;
+	NODISCARD bool EndsWith(const T* pStr) const;
 
 #pragma endregion
 
@@ -525,6 +527,46 @@ bool CustomString<T>::StartsWith(const T* pStr) const
 			return false;
 
 		if (*(m_pHead + i) != *(pStr + i))
+			return false;
+	}
+
+	return true;
+}
+
+template<typename T>
+bool CustomString<T>::EndsWith(const CustomString<T>& str) const
+{
+	if (!m_pHead || str.Size() > m_Size)
+		return false;
+
+	const size_t offset{ m_Size - str.Size() };
+	for (size_t i{}; i < str.Size(); ++i)
+	{
+		if (*(m_pHead + i + offset) == T() || str[i] == T())
+			return false;
+
+		if (*(m_pHead + i + offset) != str[i])
+			return false;
+	}
+
+	return true;
+}
+
+template<typename T>
+bool CustomString<T>::EndsWith(const T* pStr) const
+{
+	const size_t size{ CountRawString(pStr) - 1 };
+
+	if (!m_pHead || size > m_Size)
+		return false;
+
+	const size_t offset{ m_Size - size };
+	for (size_t i{}; i < size; ++i)
+	{
+		if (*(m_pHead + i + offset) == T() || pStr[i] == T())
+			return false;
+
+		if (*(m_pHead + i + offset) != pStr[i])
 			return false;
 	}
 

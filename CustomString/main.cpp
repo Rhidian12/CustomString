@@ -291,12 +291,29 @@ TEST_CASE("Test Custom String")
 	{
 		String string{ "Hello World!" };
 		String string2{ "World" };
+		String string3{ "Hello" };
 
 		REQUIRE(string.StartsWith("Hello"));
 		REQUIRE(!string.StartsWith(string2));
+		REQUIRE(string.StartsWith(string3));
 		REQUIRE(string.StartsWith("Hello World!"));
 		REQUIRE(!string.StartsWith("ello World!"));
 		REQUIRE(!string.StartsWith("Hello Word"));
 		REQUIRE(string.StartsWith("Hello World"));
+	}
+
+	SECTION("Testing EndsWith")
+	{
+		String string{ "Hello World!" };
+		String string2{ "World!" };
+		String string3{ "Hello" };
+
+		REQUIRE(string.EndsWith("World!"));
+		REQUIRE(string.EndsWith(string2));
+		REQUIRE(!string.EndsWith(string3));
+		REQUIRE(string.EndsWith("Hello World!"));
+		REQUIRE(!string.EndsWith("Hello World"));
+		REQUIRE(!string.EndsWith("Hello W!"));
+		REQUIRE(string.EndsWith("!"));
 	}
 }
